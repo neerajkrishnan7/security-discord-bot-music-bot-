@@ -1,0 +1,30 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Local databases and runtime files
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.db
+*.log
+logs/
+
+# Build/test caches
+coverage/
+.nyc_output/
+.vite/
+**/.vite/
+__pycache__/
+*.py[cod]
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

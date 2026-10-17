@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  spoofy:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: spoofy_app
+    restart: unless-stopped
+    ports:
+      - "${PORT:-4000}:4000"
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - CLIENT_ID=${CLIENT_ID}
+      - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET}
+      - DISCORD_REDIRECT_URI=${DISCORD_REDIRECT_URI:-http://localhost:4000/api/auth/discord/callback}
+      - BOT_OWNER_ID=${BOT_OWNER_ID}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-spoofy}:${POSTGRES_PASSWORD:-spoofy_secure_pw}@postgres:5432/${POSTGRES_DB:-spoofy}?schema=public
+      - REDIS_URL=redis://redis:6379
+      - API_SECRET=${API_SECRET:-spoofy_ultra_secret_key_change_me}
+      - DASHBOARD_URL=${DASHBOARD_URL:-http://localhost:4000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./data:/app/data
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: spoofy_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-spoofy}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-spoofy_secure_pw}
+      POSTGRES_DB: ${POSTGRES_DB:-spoofy}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-spoofy} -d ${POSTGRES_DB:-spoofy}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: spoofy_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
